@@ -346,6 +346,11 @@
                 "",
             );
             const clipName = `${safeName}-segment-${formatMetric(selectedStart, 0)}-${formatMetric(selectedEnd, 0)}.mp4`;
+            const wavAttachment = new File(
+                [segmentWav],
+                clipName.replace(/\.mp4$/i, ".wav"),
+                { type: "audio/wav" },
+            );
 
             let attachment: File;
             try {
@@ -354,35 +359,50 @@
                     clipName,
                 );
             } catch {
-                attachment = new File(
-                    [segmentWav],
-                    clipName.replace(/\.mp4$/i, ".wav"),
-                    { type: "audio/wav" },
-                );
+                attachment = wavAttachment;
             }
 
             const { subject, body } = buildEmailTemplate();
             const navigatorWithShare = navigator as NavWithShare;
 
-            if (
-                typeof navigatorWithShare.share === "function" &&
-                (!navigatorWithShare.canShare ||
-                    navigatorWithShare.canShare({ files: [attachment] }))
-            ) {
-                await navigatorWithShare.share({
-                    title: subject,
-                    text: body,
-                    files: [attachment],
-                });
-                emailNote =
-                    "Delningspanelen oppnades med rapporttext och valt klipp som bilaga.";
-                return;
+            if (typeof navigatorWithShare.share === "function") {
+                const shareCandidates =
+                    attachment.name === wavAttachment.name
+                        ? [attachment]
+                        : [attachment, wavAttachment];
+
+                for (const candidate of shareCandidates) {
+                    const canShareFiles = navigatorWithShare.canShare
+                        ? navigatorWithShare.canShare({ files: [candidate] })
+                        : true;
+
+                    if (!canShareFiles) continue;
+
+                    try {
+                        await navigatorWithShare.share({
+                            title: subject,
+                            text: body,
+                            files: [candidate],
+                        });
+                        emailNote =
+                            "Delningspanelen oppnades med rapporttext och valt klipp som bilaga.";
+                        return;
+                    } catch (shareError) {
+                        if (
+                            shareError instanceof Error &&
+                            shareError.name === "AbortError"
+                        ) {
+                            emailNote = "Delning avbrots.";
+                            return;
+                        }
+                    }
+                }
             }
 
             downloadBlob(attachment.name, attachment);
             openEmailDraft();
             emailNote =
-                "Din webblasare kan inte bifoga filer direkt i e-postutkast. Klippet laddades ned for manuell bilaga.";
+                "Din webblasare eller e-postklient stodjer inte automatisk filbilaga via webben. Klippet laddades ned for manuell bilaga i utkastet.";
         } catch (error) {
             if (error instanceof Error && error.name === "AbortError") {
                 emailNote = "Delning avbrots.";
