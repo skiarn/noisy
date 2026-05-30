@@ -2,6 +2,10 @@
 
 Noisy is a client-side audio analysis tool for investigating recurring environmental noise (for example tram squeal near curves). It lets you upload a recording, select a time range, analyze the selected section, and prepare a structured follow-up email with attached audio.
 
+## Live Page
+
+- [skiarn.github.io/noisy/](https://skiarn.github.io/noisy/)
+
 ## Features
 
 - Upload and decode local audio recordings directly in the browser.
