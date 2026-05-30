@@ -158,6 +158,7 @@
     function runAnalysis(startSec: number, endSec: number): void {
         if (!decodedAudio) return;
 
+        const selectedDurationSec = Math.max(0, endSec - startSec);
         const segment = getSegmentSamples(
             decodedAudio.monoSamples,
             decodedAudio.sampleRate,
@@ -174,7 +175,10 @@
             segment,
             decodedAudio.sampleRate,
         );
-        const passByMetrics = detectTrainPassBy(loudnessTimeline);
+        const passByMetrics = {
+            ...detectTrainPassBy(loudnessTimeline),
+            eventDurationSec: selectedDurationSec,
+        };
 
         audioStore.update((state) => ({
             ...state,
@@ -299,55 +303,23 @@
         window.location.href = mailtoUrl;
     }
 
-    function createSelectedSegmentBuffer(
-        buffer: AudioBuffer,
-        startSec: number,
-        endSec: number,
-    ): AudioBuffer {
-        const sampleRate = buffer.sampleRate;
-        const startFrame = Math.max(0, Math.floor(startSec * sampleRate));
-        const endFrame = Math.min(
-            buffer.length,
-            Math.max(startFrame + 1, Math.floor(endSec * sampleRate)),
-        );
-        const length = Math.max(1, endFrame - startFrame);
-
-        const segment = new AudioBuffer({
-            length,
-            numberOfChannels: buffer.numberOfChannels,
-            sampleRate,
-        });
-
-        for (let channel = 0; channel < buffer.numberOfChannels; channel += 1) {
-            const source = buffer
-                .getChannelData(channel)
-                .subarray(startFrame, endFrame);
-            segment.copyToChannel(source, channel, 0);
-        }
-
-        return segment;
-    }
-
     async function shareEmailWithAttachment(): Promise<void> {
         if (!decodedAudio) return;
         emailBusy = true;
         emailNote = null;
 
         try {
-            const segmentBuffer = createSelectedSegmentBuffer(
+            const fullRecordingWav = audioBufferToWavBlob(
                 decodedAudio.audioBuffer,
-                selectedStart,
-                selectedEnd,
             );
-            const segmentWav = audioBufferToWavBlob(segmentBuffer);
             const state = $audioStore;
             const safeName = (state.fileName || "recording").replace(
                 /\.[^/.]+$/,
                 "",
             );
-            const clipName = `${safeName}-segment-${formatMetric(selectedStart, 0)}-${formatMetric(selectedEnd, 0)}.mp4`;
+            const clipName = `${safeName}-full-recording.mp4`;
             const wavAttachment = new File(
-                [segmentWav],
+                [fullRecordingWav],
                 clipName.replace(/\.mp4$/i, ".wav"),
                 { type: "audio/wav" },
             );
@@ -355,7 +327,7 @@
             let attachment: File;
             try {
                 attachment = await transcodeWavBlobToMp4File(
-                    segmentWav,
+                    fullRecordingWav,
                     clipName,
                 );
             } catch {
