@@ -487,31 +487,54 @@
 </script>
 
 <main class="noisy-shell">
-    <header class="mb-6">
-        <p class="text-sm uppercase tracking-[0.18em] text-[var(--muted)]">
-            Client-Side Environmental Analysis
-        </p>
-        <h1 class="mt-2 text-3xl font-bold tracking-tight md:text-5xl">
-            Noisy
-        </h1>
-        <p class="mt-3 max-w-3xl text-sm text-[var(--muted)] md:text-base">
-            Upload a recording, select a waveform region, and inspect relative
-            dBFS, FFT bands, and noisy pass-by behavior.
-        </p>
+    <header class="panel hero-panel mb-6 p-5 md:p-7">
+        <div class="relative z-10">
+            <p
+                class="inline-flex rounded-full border border-[var(--card-border)] bg-white/75 px-3 py-1 text-xs font-semibold uppercase tracking-[0.16em] text-[var(--muted)]"
+            >
+                Client-Side Environmental Analysis
+            </p>
+            <h1 class="mt-4 text-3xl font-extrabold tracking-tight md:text-5xl">
+                Noisy
+            </h1>
+            <p class="mt-3 max-w-3xl text-sm text-[var(--muted)] md:text-base">
+                Upload a recording, select a waveform region, and inspect
+                relative dBFS, FFT bands, and noisy pass-by behavior.
+            </p>
+            <div class="mt-5 flex flex-wrap gap-2 text-xs md:text-sm">
+                <span
+                    class="rounded-full border border-[var(--card-border)] bg-white/80 px-3 py-1 font-medium text-[var(--muted)]"
+                >
+                    Local Processing
+                </span>
+                <span
+                    class="rounded-full border border-[var(--card-border)] bg-white/80 px-3 py-1 font-medium text-[var(--muted)]"
+                >
+                    FFT + dBFS Metrics
+                </span>
+                <span
+                    class="rounded-full border border-[var(--card-border)] bg-white/80 px-3 py-1 font-medium text-[var(--muted)]"
+                >
+                    Export + Email Draft
+                </span>
+            </div>
+        </div>
     </header>
 
     <div class="grid gap-5">
         <AudioUploader {onFileSelected} />
 
         {#if $audioStore.loading}
-            <section class="panel p-5 text-sm text-[var(--muted)]">
+            <section
+                class="panel stagger-reveal p-5 text-sm text-[var(--muted)]"
+            >
                 Decoding and preparing waveform...
             </section>
         {/if}
 
         {#if $audioStore.error}
             <section
-                class="panel border-red-200 bg-red-50 p-5 text-sm text-red-700"
+                class="panel stagger-reveal border-red-200 bg-red-50 p-5 text-sm text-red-700"
             >
                 {$audioStore.error}
             </section>
@@ -537,7 +560,7 @@
             />
             {#if emailNote}
                 <section
-                    class="panel border-sky-200 bg-sky-50 p-4 text-sm text-sky-800"
+                    class="panel stagger-reveal border-sky-200 bg-sky-50 p-4 text-sm text-sky-800"
                 >
                     {emailNote}
                 </section>
